@@ -149,9 +149,6 @@ ind.e = fitObject.e
 clear z L R
 clear fitObject fitOptions fitType L_fitted
 
-%%
-% set(gcf,'PaperPositionMode','auto')
-
 %% Equilibrum point
 
 z_ep = 0.010; % m
@@ -174,7 +171,35 @@ B = [0; 0; 1/L_ep]
 C = [1 0 0; 0 0 1]
 D = [0; 0]
 
-%%
+%% Dynamic system properties
 
+Q_c = ctrb(A,B)
+rank(Q_c)
 
+Q_o = obsv(A,C)
+rank(Q_o)
 
+%% LQ controllers design
+
+Q = diag([10000^2, 100^2, 10^2]);
+R = 100;
+
+K_lq = lqr(A,B,Q,R)
+
+%% LQI controllers design
+
+Qi = Q;
+Qi(4,4) = 1e8;
+Ri = R;
+Ai = A;
+Ai(4,4) = 0;
+Ai(4,1) = 1;
+Bi = [B; 0];
+K_lqi = lqr(Ai,Bi,Qi,Ri)
+
+%% Luenberger observer
+
+pp = [-4,-5,-6]
+L = place(A',C',pp)'
+
+eig(A - L*C)
